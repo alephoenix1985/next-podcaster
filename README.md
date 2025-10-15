@@ -22,22 +22,42 @@ This is a solution for the frontend technical test. It's a Next.js application t
 
 ## Tech Stack
 
-- **Framework**: Next.js (with App Router structure).
+- **Framework**: Next.js (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
-- **State Management**: React Context API for global state (like loading indicators) and `Suspense` for data-fetching states.
-- **Data Fetching**: A custom `useSuspenseFetch` hook integrates the `fetch` API with React `Suspense` for a declarative data-fetching approach.
+- **State Management**: React Context API and `useSyncExternalStore` for global state management, combined with React `Suspense` for declarative loading states.
+- **Data Fetching**: Native `fetch` API integrated with Next.js Server Components and caching mechanisms.
 - **Testing**: Jest and React Testing Library for unit and integration tests.
 
-## Architecture
+## Architecture and Design Patterns
 
-The project follows a layered architecture to separate concerns and improve maintainability:
-- **`components`**: Reusable UI components, including common elements and feature-specific ones.
-- **`contexts`**: React Context definitions for global state.
-- **`hooks`**: Custom React hooks for reusable logic (e.g., `useSuspenseFetch`, `useLoading`).
-- **`providers`**: Context providers that encapsulate state logic and data fetching.
-- **`services`**: Modules for interacting with external APIs and transforming data.
-- **`types`**: Centralized TypeScript type definitions.
+The project is structured following the principles of **Feature-Sliced Design (FSD)**, a scalable architectural methodology for frontend applications. This approach organizes the codebase into layers and slices, promoting low coupling and high cohesion.
+
+### FSD Layers
+
+- **app**: The composition layer. It initializes the application, wires up providers (like `LoadingProvider`), defines global styles, and contains the root layout.
+- **widgets**: Complex, compositional UI blocks for pages (e.g., `Header`, `PodcastList`). They assemble features and entities into meaningful sections of the interface.
+- **features**: Slices of business logic that provide value to the user (e.g., `FilterPodcasts`).
+- **entities**: Core business entities of the application (e.g., `PodcastCard`, `EpisodeDetail`). They are the most independent and reusable components.
+- **shared**: Reusable code that is not tied to any specific business logic. This includes UI kits (`Image`, `ErrorBoundary`), libraries (`api-client`), hooks (`useLoading`), and type definitions.
+
+### Design Patterns
+
+Several design patterns have been implemented to create a robust and maintainable solution:
+
+- **Server & Client Component Architecture**: The application leverages the Next.js App Router to separate concerns effectively.
+    - **Server Components** are the default and are used for data fetching (`getPodcasts`, `getPodcastDetails`) and rendering static UI. This minimizes the client-side JavaScript bundle and improves initial page load performance.
+    - **Client Components** (`'use client'`) are used only where interactivity is essential (e.g., input filtering, click events, stateful hooks), ensuring a lean and performant user experience.
+
+- **Observer Pattern (`LoadingManager`)**: A global loading state is managed using the Observer pattern. The `LoadingManager` class acts as the "subject," maintaining a map of loading states. UI components, like the `LoadingIndicator`, "subscribe" to this manager via the `useLoading` hook. When a state changes, the manager notifies all subscribers, causing them to update. This decouples the loading indicator from the components that trigger loading states, preventing prop drilling and unnecessary re-renders across the application.
+
+- **Provider Pattern (Context API)**: The `LoadingProvider` utilizes the Provider pattern to make a single, stable instance of the `LoadingManager` available throughout the component tree. This ensures that all components share the same source of truth for loading states.
+
+- **Hook Pattern (`useLoading`)**: The `useLoading` custom hook encapsulates the logic for interacting with the `LoadingContext` and `useSyncExternalStore`. This provides a clean, reusable, and declarative API for components to read and write to the global loading state, abstracting away the underlying implementation details.
+
+- **Error Boundary Pattern**: The application uses a custom `ErrorBoundary` component, a standard React pattern, to catch rendering errors in its children. This prevents a UI crash in one part of the application (e.g., a failed data fetch in a sub-component) from breaking the entire page, providing a more resilient user experience with an option to retry the failed action.
+
+- **Cache-Aside Pattern**: A simple server-side in-memory cache (`podcastCache` in `itunes-api.ts`) is used to implement the cache-aside pattern. After the initial fetch of the podcast list, the data is stored. Subsequent requests for podcast details on the server can read from this cache to get summary information, avoiding redundant network calls and reducing latency.
 
 ## Getting Started
 
@@ -85,7 +105,7 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Performance
 ### Lighthouse
-![img.png](public/assets/img.png)
+![img.png](public/assets/ss_0.png)
 
 ### Screens
 #### Desktop

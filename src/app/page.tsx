@@ -1,27 +1,14 @@
-'use client';
-
-import React, {JSX, Suspense, useEffect} from 'react';
-import Loading from "@/app/loading";
-import {ErrorBoundary} from "@/components/common/error-boundary";
-import PodcastData from "@/components/podcast/podcast-data";
-import {useLoading} from "@/hooks/loading.hook";
+import React, { JSX } from "react";
+import { PodcastList } from "@/widgets/podcast-list/ui/PodcastList";
 
 /**
- * The home page component that displays a list of podcasts.
- * @returns {JSX.Element} The home page component.
+ * The main page of the application, displaying the top podcasts.
+ * @returns {JSX.Element} The main page component.
  */
-export default function Home(): JSX.Element {
-    const {setComponentLoading} = useLoading();
-    useEffect(() => {
-        document.title = 'Podcaster | List';
-        setComponentLoading('initialLoading', false);
-    }, [setComponentLoading]);
-
-    return (
-        <ErrorBoundary fallback={<p>Sorry, there was an error loading the podcasts.</p>}>
-            <Suspense fallback={<Loading/>}>
-                <PodcastData/>
-            </Suspense>
-        </ErrorBoundary>
-    );
+export default function Page(): JSX.Element {
+  return (
+    <div className="px-8 pt-4">
+      <PodcastList />
+    </div>
+  );
 }

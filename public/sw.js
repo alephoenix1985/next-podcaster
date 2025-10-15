@@ -3,7 +3,6 @@ const IMAGES_CACHE_NAME = 'podcast-images';
 const API_URLS = 'https://itunes.apple.com|https://api.codetabs.com';
 const IMAGES_URL_PATTERN = 'https://is1-ssl.mzstatic.com';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
-const IMAGE_CACHE_DURATION = 365 * 24 * 60 * 60 * 1000; // 1 year
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
@@ -46,7 +45,7 @@ self.addEventListener('fetch', (event) => {
                     });
                     cache.put(event.request, newResponse);
                     return networkResponse;
-                } catch (error) {
+                } catch {
                     return cachedResponse;
                 }
             })
@@ -63,7 +62,7 @@ self.addEventListener('fetch', (event) => {
                     const networkResponse = await fetch(event.request);
                     cache.put(event.request, networkResponse.clone());
                     return networkResponse;
-                } catch (error) {
+                } catch {
                     return new Response(null, {status: 404, statusText: 'Not Found'});
                 }
             })
